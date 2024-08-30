@@ -1,0 +1,17 @@
+{
+  "canisters": {
+    "unity_frontend": {
+      "source": [
+        "./"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "version": 1
+}
