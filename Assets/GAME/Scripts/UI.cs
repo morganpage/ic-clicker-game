@@ -11,6 +11,8 @@ public class UI : MonoBehaviour
   [SerializeField] private TextMeshProUGUI textCount;
   [SerializeField] private TextMeshProUGUI textAchievementsAndRewards;
   [SerializeField] private Button clickButton;
+  [SerializeField] private TMP_InputField inputProfileName;
+  [SerializeField] private Button profileNameButton;
 
   [SerializeField] private UIReward _uiRewardPrefab;
   [SerializeField] private Transform _rewardParent;
@@ -21,6 +23,8 @@ public class UI : MonoBehaviour
   void Awake()
   {
     clickButton.interactable = false;
+    profileNameButton.interactable = false;
+    inputProfileName.interactable = false;
     foreach (Transform child in _rewardParent)
     {
       Destroy(child.gameObject);
@@ -34,6 +38,8 @@ public class UI : MonoBehaviour
     ClickerGame.OnAchievementsChanged += OnAchievementsChanged;
     ClickerGame.OnRewardsChanged += OnRewardsChanged;
     ClickerGame.OnAvailableRewardsChanged += OnAvailableRewardsChanged;
+    ClickerGame.OnProfileNameChanged += OnProfileNameChanged;
+    ClickerGame.OnUpdatePending += OnUpdatePending;
   }
   void OnDisable()
   {
@@ -42,12 +48,16 @@ public class UI : MonoBehaviour
     ClickerGame.OnAchievementsChanged -= OnAchievementsChanged;
     ClickerGame.OnRewardsChanged -= OnRewardsChanged;
     ClickerGame.OnAvailableRewardsChanged -= OnAvailableRewardsChanged;
+    ClickerGame.OnProfileNameChanged -= OnProfileNameChanged;
+    ClickerGame.OnUpdatePending -= OnUpdatePending;
   }
 
   void OnPlayerPrincipalChanged(string playerPrincipal)
   {
     textPlayerPrincipal.text = $"Logged in as: {playerPrincipal}";
     clickButton.interactable = true;
+    profileNameButton.interactable = true;
+    inputProfileName.interactable = true;
   }
 
   void OnClickCountChanged(int count)
@@ -77,7 +87,6 @@ public class UI : MonoBehaviour
       }
     }
   }
-
   void UpdateAchievementsAndRewards()
   {
     textAchievementsAndRewards.text = $"Achievements:\n{string.Join("\n", _achievements)} \n\nRewards:\n{string.Join("\n", _rewards)} \n\nAvailable Rewards:\n{string.Join("\n", _rewardSprites.Keys)}";
@@ -87,29 +96,20 @@ public class UI : MonoBehaviour
   {
     _rewardSprites = rewardSprites;
     UpdateAchievementsAndRewards();
-    // _rewardSprites.Clear();
-    // for (int i = 0; i < availableRewards.pets.Length; i++)
-    // {
-    //   string petName = availableRewards.pets[i].name;
-    //   string petUrl = availableRewards.pets[i].url;
-    //   if (!_rewardSprites.ContainsKey(petName))
-    //   {
-    //     Sprite sprite = await GetSpriteAsync(petUrl);
-    //     _rewardSprites.Add(petName, sprite);
-    //   }
-    // }
   }
 
-  async Task<Sprite> GetSpriteAsync(string imageUrl)
+  async void OnProfileNameChanged(string profileName)
   {
-    var request = UnityWebRequestTexture.GetTexture(imageUrl);
-    await request.SendWebRequest();
-    while (!request.isDone) await Task.Yield();
-    Texture2D texture = DownloadHandlerTexture.GetContent(request);
-    Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.one * 0.5f);
-    return sprite;
+    inputProfileName.text = profileName;
+    profileNameButton.interactable = true;
+    inputProfileName.interactable = true;
   }
 
+  async void OnUpdatePending()
+  {
+    profileNameButton.interactable = false;
+    inputProfileName.interactable = false;
+  }
 
 
 }

@@ -6,16 +6,19 @@ using Rogues.ClickerGame;
 using Rogues.ClickerGame.Models;
 using System.Threading.Tasks;
 using UnityEngine.Networking;
+using System;
 
 
 public class ClickerGame : MonoBehaviour
 {
-  public static event System.Action<int> OnClickCountChanged;
-  public static event System.Action<string[]> OnAchievementsChanged;
-  public static event System.Action<string[]> OnRewardsChanged;
-  public static event System.Action<Dictionary<string, Sprite>> OnAvailableRewardsChanged;
-
+  public static event Action<int> OnClickCountChanged;
+  public static event Action<string[]> OnAchievementsChanged;
+  public static event Action<string[]> OnRewardsChanged;
+  public static event Action<Dictionary<string, Sprite>> OnAvailableRewardsChanged;
+  public static event Action<string> OnProfileNameChanged;
+  public static event Action OnUpdatePending;
   [SerializeField] private Login _login;
+  public string _profileNameLocal;//Local cache updated by input field changes
 
   void OnEnable()
   {
@@ -43,6 +46,7 @@ public class ClickerGame : MonoBehaviour
     await GetAvailableRewards();
     GetPlayerAchievements();
     GetGameRewards();
+    GetProfileName();
   }
 
   public async void GetPlayerAchievements()
@@ -86,6 +90,9 @@ public class ClickerGame : MonoBehaviour
     OnAvailableRewardsChanged?.Invoke(rewardSprites);
   }
 
+
+
+
   async Task<Sprite> GetSpriteAsync(string imageUrl)
   {
     var request = UnityWebRequestTexture.GetTexture(imageUrl);
@@ -96,6 +103,27 @@ public class ClickerGame : MonoBehaviour
     return sprite;
   }
 
+  public void UpdateLocalProfileName(string profileName)
+  {
+    _profileNameLocal = profileName;
+  }
+
+  public async void UpdateProfileName()
+  {
+    OnUpdatePending?.Invoke();
+    Result result = await _login.Client.UpdateProfileName(_profileNameLocal);
+    KeyValue profileNameKV = result.AsOk();
+    Debug.Log(profileNameKV.Value);
+    OnProfileNameChanged?.Invoke(profileNameKV.Value);
+  }
+
+  private async Task GetProfileName()
+  {
+    Result result = await _login.Client.GetProfileName();
+    KeyValue profileNameKV = result.AsOk();
+    Debug.Log(profileNameKV.Value);
+    OnProfileNameChanged?.Invoke(profileNameKV.Value);
+  }
 
 
   public class Rewards
